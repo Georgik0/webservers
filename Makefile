@@ -2,21 +2,23 @@ server_dir = ./server_src
 client_dir = ./client_src
 utils_dir = ./utils_src
 
+obj_dir = objs
+
 #src = ${wildcard *.cpp}
 #src_server = ${wildcard ${server_dir}/*.cpp}
 #src_client = ${wildcard ${client_dir}/*.cpp}
-src_multi = ${server_dir}/multithreading_echo_server.cpp ${utils_dir}/net_write_read.cpp
+src_multi_server = ${server_dir}/multithreading_echo_server.cpp ${utils_dir}/net_write_read.cpp
 src_client_peps = ${client_dir}/peps_client.cpp ${utils_dir}/net_write_read.cpp
 src_client_multi_echo = ${client_dir}/multithreading_echo_client.cpp ${utils_dir}/net_write_read.cpp
 
 header = ${wildcard *.hpp}
 
 #obj = ${src:%.cpp=%.o}
-obj_server = ${src_server: ${server_dir}/%.cpp=%.o}
-obj_client = ${src_client: ${client_dir}/%.cpp=%.o}
-obj_multi = ${src_multi:%.cpp=%.o}
-obj_client_peps = ${src_client_peps:%.cpp=%.o}
-obj_client_multi_echo = ${src_client_multi_echo:%.cpp=%.o}
+obj_server = ${src_server: ${server_dir}/%.cpp=${obj_dir}/%.o}
+obj_client = ${src_client: ${client_dir}/%.cpp=${obj_dir}/%.o}
+obj_multi_server = ${src_multi_server:%.cpp=${obj_dir}/%.o}
+obj_client_peps = ${src_client_peps:%.cpp=${obj_dir}/%.o}
+obj_client_multi_echo = ${src_client_multi_echo:%.cpp=${obj_dir}/%.o}
 
 cc = clang++
 
@@ -36,8 +38,8 @@ ${name_client}:	${obj_client} ${header} Makefile
 ${name_server}:	${obj_server} ${header} Makefile
 	${cc} ${flags} ${obj_server} -o ${name_server}
 
-${name_server_multi}: ${obj_multi} ${header} Makefile
-	${cc} ${flags} ${obj_multi} -o ${name_server_multi}
+${name_server_multi}: ${obj_multi_server} ${header}
+	${cc} ${flags} $^ -o $@
 
 ${name_client_peps}:  ${obj_client_peps} ${header} Makefile
 	${cc} ${flags} ${obj_client_peps} -o ${name_client_peps}
@@ -45,18 +47,22 @@ ${name_client_peps}:  ${obj_client_peps} ${header} Makefile
 ${name_client_multi_echo}:   ${obj_client_multi_echo} ${header} Makefile
 	${cc} ${flags} ${obj_client_multi_echo} -o ${name_client_multi_echo}
 
-%.o: %.cpp	Makefile
-	@# mkdir -p $(objdir)
-	 @$(cc) $(flags) -c $< -o $@
+$(obj_dir)/%.o: %.cpp	Makefile
+	mkdir -p $(dir $@)
+	$(cc) $(flags) -c $< -o $@
 	@# echo "Compiled "$<" successfully!"
+#$(objdir)/%.o	: $(srcdir)/%.c Makefile $(inclds)
+#				@mkdir -p $(dir $@)
+#				$(cc) $(cflags) -c $< -o $@
+#				@echo "Compiled "$<" successfully!"
 
 all:
 
 clean:
-	${rm} ${obj_server} ${obj_client}
+	${rm} ${obj_dir}
 
 fclean: clean
-	${rm} ${name_client} ${name_server}
+	${rm} ${name_client} ${name_server} ${name_server_multi} ${name_client_peps} ${name_client_multi_echo}
 
 re: fclean all
 
