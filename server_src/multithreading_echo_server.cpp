@@ -14,10 +14,6 @@
 
 #include "../utils_src/net_write_read.hpp"
 
-#define MAXLINE 4096
-#define	LISTENQ	1024 /* максимальное кол-во клиентских соединений */
-#define	SA	struct sockaddr
-
 void err_sys(const char* x) {
     perror(x);
     exit(1);
