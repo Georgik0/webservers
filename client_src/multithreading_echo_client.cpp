@@ -41,11 +41,8 @@ int main(int argc, char **argv) {
 
     std::string buf_string;
     while (getline(std::cin, buf_string)) {
-//        char const *buf = buf_string.c_str();
-//        std::cout << buf << std::endl;
-//        if (fputs(buf_string.c_str(), stdout) == EOF)
-//            std::cout << "Error fputs" << std::endl;
         writen(sockfd, buf_string.c_str(), buf_string.length());
+
     }
 
 }

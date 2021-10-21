@@ -26,26 +26,20 @@ flags = -Wall -Wextra -Werror -std=c++98 # -Wshadow -Wno-shadow
 
 name_client = client
 name_server = server
-name_server_multi = server_multi
-name_client_peps = peps_client
-name_client_multi_echo = multithreading_echo_client
+name_server_multi = server_multithreading_echo
+name_client_peps = client_peps
+name_client_multi_echo = client_multithreading_echo
 
 rm = rm -rf
 
-${name_client}:	${obj_client} ${header} Makefile
-	${cc} ${flags} ${obj_client} -o ${name_client}
-
-${name_server}:	${obj_server} ${header} Makefile
-	${cc} ${flags} ${obj_server} -o ${name_server}
-
 ${name_server_multi}: ${obj_multi_server} ${header}
-	${cc} ${flags} $^ -o $@
+	${cc} ${flags} $^ -o ${name_server}
 
-${name_client_peps}:  ${obj_client_peps} ${header} Makefile
-	${cc} ${flags} ${obj_client_peps} -o ${name_client_peps}
+${name_client_peps}:  ${obj_client_peps} ${header}
+	${cc} ${flags} $^ -o ${name_client}
 
-${name_client_multi_echo}:   ${obj_client_multi_echo} ${header} Makefile
-	${cc} ${flags} ${obj_client_multi_echo} -o ${name_client_multi_echo}
+${name_client_multi_echo}:   ${obj_client_multi_echo} ${header}
+	${cc} ${flags} $^ -o ${name_client}
 
 $(obj_dir)/%.o: %.cpp	Makefile
 	mkdir -p $(dir $@)

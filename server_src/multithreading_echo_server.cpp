@@ -93,10 +93,13 @@ void str_echo(int sockfd) {
         } else {
             std::cout << "[" << sockfd << "] " << "Прочитал: " << buf << std::endl;
         }
-        if (writen(sockfd, buf, n) < 0){
+
+        std::string answer(buf);
+        answer = "\"" + answer + "\"" + " - server response";
+        if (writen(sockfd, answer.c_str(), answer.length()) < 0){
             err_sys("Error write");
         } else {
-            std::cout << "Ответил" << std::endl;
+            std::cout << "Ответил: " << answer << std::endl;
         }
     }
 }
@@ -108,9 +111,6 @@ int main(int argc, char **argv) {
     pthread_t tid;
     socklen_t addrlen, len;
     struct sockaddr *cliaddr;
-
-//    char buf[MAXLINE];
-//    time_t  ticks;
 
     if (argc == 2)
         listenfd = Tcp_listen(NULL, argv[1], &addrlen);
@@ -140,7 +140,6 @@ int main(int argc, char **argv) {
 }
 
 static void *doit(void *arg) {
-    static int count = 0;
     /* pthread_detach - делает поток отсоединенным
      * Отсоединенный поток напоминает процесс-демон: когда он завершается,
      * все занимаемые им ресурсы освобождаются и мы не можем отслеживать его завершения
@@ -150,8 +149,7 @@ static void *doit(void *arg) {
         exit(1);
     }
 
-    count++;
-    std::cout << "Кто-то подключился " << count << std::endl;
+    std::cout << "Кто-то подключился [" << *static_cast<int *>(arg) << "]" << std::endl;
 //    std::cout << "After static_cast<int *>" << *static_cast<int *>(arg) << std::endl;
 
     str_echo(*static_cast<int *>(arg));
