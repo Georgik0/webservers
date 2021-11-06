@@ -24,15 +24,15 @@ int main(int argc, char **argv) {
     }
     bzero(&servaddr, sizeof(servaddr));
     servaddr.sin_family = AF_INET;
-    servaddr.sin_addr.s_addr = htonl(INADDR_ANY); /* Задаем IP-адрес как INADDR_ANY, что позволяет серверу приниматьсоединение клиента на любом интерфейсе, если узел сервера имеет несколько интерфейсов */
-    servaddr.sin_port = htons(13);  /* задаем порт */
+    servaddr.sin_addr.s_addr = htonl(INADDR_ANY);
+    servaddr.sin_port = htons(13);
 
-    if (bind(listenfd, (SA *) &servaddr, sizeof(servaddr) ) < 0) { // связываем порт сервера с сокетом
+    if (bind(listenfd, (SA *) &servaddr, sizeof(servaddr) ) < 0) {
         std::cout << "Error bind" << std::endl;
         return 1;
     }
 
-    if (listen(listenfd, LISTENQ) < 0) { // listen - преобразует сокет в прослушиваемый
+    if (listen(listenfd, LISTENQ) < 0) {
         std::cout << "Error listen" << std::endl;
         return 1;
     }
@@ -43,7 +43,6 @@ int main(int argc, char **argv) {
             return 1;
         }
         ticks = time(NULL);
-//        snprintf(buf, sizeof(buf), "%.24s\er\en", ctime(&ticks));
         snprintf(buf, sizeof(buf), "Закрыто");
 
         if (write(connfd, buf, strlen(buf)) < 0) {

@@ -41,11 +41,6 @@ void str_cli(FILE *fp, int sockfd) {
     char    to[MAXLINE], fr[MAXLINE];
     char    *toiptr, *tooptr, *friptr, *froptr;
 
-    /* fcntl(int fd, int cmd, ...(int arg)) возвращает -1 в случае ошибки
-     * fd - дескриптор
-     * F_GETFL - получает набор флагов дескриптора
-     * F_SETFL - устанавливает
-     * */
     val = Fcntl(sockfd, F_GETFL, 0);
     Fcntl(sockfd, F_SETFL, val | O_NONBLOCK);
 

@@ -32,12 +32,12 @@ int main(int argc, char **argv) {
         std::cout << "Error argc" << std::endl;
         return 0;
     }
-    if ((sockfd = socket(AF_INET, SOCK_STREAM, 0)) < 0) // socket() - создает потоковый (SOCK_STREAM) сокет Интернета (AF_INET); AF_INET - показывает, что мы работаем с сетевыми сокетами (сокеты для обмена данными по сети)
-        std::cout << "Error socket" << std::endl;       // SOCK_STREAM - указывает, что мы будем исполоьзовать сокет для работы с протоколом tcp
+    if ((sockfd = socket(AF_INET, SOCK_STREAM, 0)) < 0)
+        std::cout << "Error socket" << std::endl;
     bzero(&servaddr, sizeof(servaddr));
     servaddr.sin_family = AF_INET;
-    servaddr.sin_port = htons(13); // преобразовывает двоичный номер порта в требуемый формат
-    if (inet_pton(AF_INET, argv[1], &servaddr.sin_addr) <= 0) // преобразует ip адрес в двоичный формат
+    servaddr.sin_port = htons(13);
+    if (inet_pton(AF_INET, argv[1], &servaddr.sin_addr) <= 0)
         std::cout << "Error inet_pton" << std::endl;
     if (connect(sockfd, (SA *) &servaddr, sizeof(servaddr)) < 0)
         std::cout << "Error connect" << std::endl;

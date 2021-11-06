@@ -28,13 +28,8 @@ int Tcp_listen(const char *host, const char *serv, socklen_t *addrlenp) {
     bzero(&hints, sizeof(struct addrinfo));
     hints.ai_flags = AI_PASSIVE;
     hints.ai_family = AF_UNSPEC;
-    hints.ai_socktype = SOCK_STREAM; // надёжная потокоориентированная служба (сервис) или потоковый сокет (в данном случае TCP)
+    hints.ai_socktype = SOCK_STREAM;
 
-    /* getaddrinfo(const char *hostname, const char *service, const struct addrinfo *hints, struct addrinfo **result) (стр. 348)
-     * возвращает список структур sockaddr через указатель result
-     * hostname - либо имя узла либо строка адреса
-     * service - либо имя службы, либо строка, содержащая десятичный номер порта
-     * hints - либо пустой указатель, либо указатель на структуру addrinfo*/
     if ((n = getaddrinfo(host, serv, &hints, &res)) != 0) {
         std::cout << "Error getaddrinfo" << std::endl;
         return 1;
@@ -43,23 +38,18 @@ int Tcp_listen(const char *host, const char *serv, socklen_t *addrlenp) {
 
     do {
         listenfd = socket(res->ai_family, res->ai_socktype, res->ai_protocol);
-//        std::cout << "listenfd = " << listenfd << std::endl;
+
         if (listenfd < 0)
             continue; /* ошибка, пробуем следующий адрес */
 
-        /* setsockopt(int sockfd, int level, int optname, const void *optval, socklen_t optlen) (стр. 223)
-         * sockfd - ссылается на открытый дескриптор сокета
-         * level - определяет, каким кодом должен интерпретироваться параметр
-         * optval - это указатель на переменную, из которой извлекается новое значение параметра функции */
         if (setsockopt(listenfd, SOL_SOCKET, SO_REUSEADDR, &on, sizeof(on)) == -1) {
             std::cout << "Error setsockopt" << std::endl;
             return 1;
         }
 
         if (bind(listenfd, res->ai_addr, res->ai_addrlen) == 0)
-            break; /* успех */
+            break;
 
-        /* ошибка при вызове bind, закрываем сокет и пробуем следующий адрес */
         if (close(listenfd) < 0) {
             std::cout << "Error close" << std::endl;
             return 1;
@@ -72,7 +62,7 @@ int Tcp_listen(const char *host, const char *serv, socklen_t *addrlenp) {
     if (listen(listenfd, LISTENQ) < 0)
         err_sys("Error listen");
     if (addrlenp)
-        *addrlenp = res->ai_addrlen; /* возвращает размер адреса протокола */
+        *addrlenp = res->ai_addrlen;
 
     freeaddrinfo(ressave);
 
@@ -85,7 +75,7 @@ void str_echo(int sockfd) {
     for (;;) {
         if ( (n = read(sockfd, buf, MAXLINE)) < 0) {
             std::cout << "Прочитал: " << buf << std::endl;
-            return; /* Если клиент закрывает соединение, то при получении клиентского сегмента FIN функция read возвращает 0 */
+            return;
         } else {
             std::cout << "[" << sockfd << "] " << "Прочитал: " << buf << std::endl;
         }
@@ -136,17 +126,12 @@ int main(int argc, char **argv) {
 }
 
 static void *doit(void *arg) {
-    /* pthread_detach - делает поток отсоединенным
-     * Отсоединенный поток напоминает процесс-демон: когда он завершается,
-     * все занимаемые им ресурсы освобождаются и мы не можем отслеживать его завершения
-     * pthread_self - возвращает идентификатор потока */
     if (pthread_detach(pthread_self()) != 0) {
         std::cout << "Error pthread_detach" << std::endl;
         exit(1);
     }
 
     std::cout << "Кто-то подключился [" << *static_cast<int *>(arg) << "]" << std::endl;
-//    std::cout << "After static_cast<int *>" << *static_cast<int *>(arg) << std::endl;
 
     str_echo(*static_cast<int *>(arg));
 
