@@ -29,7 +29,7 @@ int Fcntl(int fd, int cmd, int arg) {
         default:
             break;
     }
-    if (val = fcntl(fd, cmd, arg) < 0)
+    if (val == fcntl(fd, cmd, arg) < 0)
         err_sys(err.c_str());
     return val;
 }
@@ -54,7 +54,7 @@ void str_cli(FILE *fp, int sockfd) {
     friptr = froptr = fr;
     stdineof = 0;
 
-    maxfdp1 = max(max(STDIN_FILENO, STDOUT_FILENO), sockfd) + 1;
+    maxfdp1 = std::max(std::max(STDIN_FILENO, STDOUT_FILENO), sockfd) + 1;
     for (;;) {
         FD_ZERO(&rset);
         FD_ZERO(&wset);
