@@ -5,6 +5,7 @@
 #include <arpa/inet.h>
 #include <iostream>
 #include <cstring>
+#include <sstream>
 
 #include <stdio.h>
 #include <unistd.h>
@@ -15,21 +16,32 @@
 #define	SA	struct sockaddr
 
 int main(int argc, char **argv) {
-    int sockfd;//, n;
+    int sockfd, port;//, n;
     struct sockaddr_in servaddr;
 //    char recvline[MAXLINE + 1];
 
-    if (argc != 2) {
+    if (argc < 2) {
         std::cout << "Error argc" << std::endl;
         return 0;
     }
+
+    if (argc == 3) {
+        std::istringstream iss (argv[2]);
+        iss >> port;
+        if (iss.fail()) {
+            // something wrong happened
+            std::cerr << "ERROR!\n";
+            return 1;
+        }
+    } else
+        port = 13;
 
     if ((sockfd = socket(AF_INET, SOCK_STREAM, 0)) < 0)
         std::cout << "Error socket" << std::endl;
 
     bzero(&servaddr, sizeof(servaddr));
     servaddr.sin_family = AF_INET;
-    servaddr.sin_port = htons(13);
+    servaddr.sin_port = htons(port);
 
     if (inet_pton(AF_INET, argv[1], &servaddr.sin_addr) <= 0)
         std::cout << "Error inet_pton" << std::endl;

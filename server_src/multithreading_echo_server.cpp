@@ -14,13 +14,13 @@
 
 #include "../utils_src/net_write_read.hpp"
 
-void err_sys(const char* x) {
+/*void err_sys(const char* x) {
     perror(x);
     exit(1);
-}
+}*/
 
 /* срт. 720 */
-int Tcp_listen(const char *host, const char *serv, socklen_t *addrlenp) {
+/*int Tcp_listen(const char *host, const char *serv, socklen_t *addrlenp) {
     int listenfd, n;
     const int on = 1;
     struct addrinfo hints, *res, *ressave;
@@ -40,7 +40,7 @@ int Tcp_listen(const char *host, const char *serv, socklen_t *addrlenp) {
         listenfd = socket(res->ai_family, res->ai_socktype, res->ai_protocol);
 
         if (listenfd < 0)
-            continue; /* ошибка, пробуем следующий адрес */
+            continue; *//* ошибка, пробуем следующий адрес *//*
 
         if (setsockopt(listenfd, SOL_SOCKET, SO_REUSEADDR, &on, sizeof(on)) == -1) {
             std::cout << "Error setsockopt" << std::endl;
@@ -67,7 +67,7 @@ int Tcp_listen(const char *host, const char *serv, socklen_t *addrlenp) {
     freeaddrinfo(ressave);
 
     return listenfd;
-}
+}*/
 
 void str_echo(int sockfd) {
     ssize_t n;
@@ -90,7 +90,22 @@ void str_echo(int sockfd) {
     }
 }
 
-static void *doit(void *);
+static void *doit(void *arg) {
+    if (pthread_detach(pthread_self()) != 0) {
+        std::cout << "Error pthread_detach" << std::endl;
+        exit(1);
+    }
+
+    std::cout << "Кто-то подключился [" << *static_cast<int *>(arg) << "]" << std::endl;
+
+    str_echo(*static_cast<int *>(arg));
+
+    if (close(*static_cast<int *>(arg)) < 0) {
+        std::cout << "Error close in doit" << std::endl;
+        exit(1);
+    }
+    return NULL;
+}
 
 int main(int argc, char **argv) {
     int listenfd, connfd;
@@ -123,21 +138,4 @@ int main(int argc, char **argv) {
             exit(1);
         }
     }
-}
-
-static void *doit(void *arg) {
-    if (pthread_detach(pthread_self()) != 0) {
-        std::cout << "Error pthread_detach" << std::endl;
-        exit(1);
-    }
-
-    std::cout << "Кто-то подключился [" << *static_cast<int *>(arg) << "]" << std::endl;
-
-    str_echo(*static_cast<int *>(arg));
-
-    if (close(*static_cast<int *>(arg)) < 0) {
-        std::cout << "Error close in doit" << std::endl;
-        exit(1);
-    }
-    return NULL;
 }
