@@ -9,6 +9,7 @@ obj_dir = objs
 #src_client = ${wildcard ${client_dir}/*.cpp}
 src_multi_server = ${server_dir}/multithreading_echo_server.cpp ${utils_dir}/net_write_read.cpp
 src_server_select = ${server_dir}/select_server.cpp ${utils_dir}/net_write_read.cpp
+src_server_multi_select = ${server_dir}/multithreading_select_server.cpp ${utils_dir}/net_write_read.cpp
 src_client_peps = ${client_dir}/peps_client.cpp ${utils_dir}/net_write_read.cpp
 src_client_multi_echo = ${client_dir}/multithreading_echo_client.cpp ${utils_dir}/net_write_read.cpp
 
@@ -19,6 +20,7 @@ obj_server = ${src_server: ${server_dir}/%.cpp=${obj_dir}/%.o}
 obj_server_select = ${src_server_select:/%.cpp=${obj_dir}/%.o}
 obj_client = ${src_client: ${client_dir}/%.cpp=${obj_dir}/%.o}
 obj_multi_server = ${src_multi_server:%.cpp=${obj_dir}/%.o}
+obj_multi_select_server = ${src_server_multi_select:%.cpp=${obj_dir}/%.o}
 obj_client_peps = ${src_client_peps:%.cpp=${obj_dir}/%.o}
 obj_client_multi_echo = ${src_client_multi_echo:%.cpp=${obj_dir}/%.o}
 
@@ -30,6 +32,7 @@ name_client = client
 name_server = server
 name_server_multi = server_multithreading_echo
 name_server_select = server_select
+name_server_multi_select = server_multithreading_select
 name_client_peps = client_peps
 name_client_multi_echo = client_multithreading_echo
 
@@ -45,6 +48,9 @@ ${name_client_multi_echo}:   ${obj_client_multi_echo} ${header}
 	${cc} ${flags} $^ -o ${name_client}
 
 ${name_server_select}:	${obj_server_select} ${header}
+	${cc} ${flags} $^ -o ${name_server}
+
+${name_server_multi_select}: ${obj_multi_select_server} ${header}
 	${cc} ${flags} $^ -o ${name_server}
 
 $(obj_dir)/%.o: %.cpp	Makefile

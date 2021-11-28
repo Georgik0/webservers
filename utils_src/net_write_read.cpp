@@ -86,6 +86,49 @@ int Tcp_listen(const char *host, const char *serv, socklen_t *addrlenp) {
     return listenfd;
 }
 
+void err_exit(const char* msg) {
+    perror(msg);
+    exit(EXIT_FAILURE);
+}
+
+int ft_socket(int family, int sock_type, int protocol) {
+    int sockfd;
+
+    sockfd = socket(family, sock_type, protocol);
+    if (sockfd < 0)
+        err_exit("[Socket]");
+    return sockfd;
+}
+
+void ft_connect(int fd, const struct sockaddr* sa, socklen_t addrlen) {
+    if (connect(fd, sa, addrlen))
+        err_exit("[Connect]");
+}
+
+void    ft_bind(int fd, const struct sockaddr* addr, socklen_t addrlen) {
+    if (bind(fd, addr, addrlen) < 0)
+        err_exit("[Bind]");
+}
+
+void    ft_listen(int fd, int queue) {
+    if (listen(fd, queue))
+        err_exit("[Listen]");
+}
+
+int ft_accept(int listen_fd, struct sockaddr* sa, socklen_t* addrlen) {
+    int connect_fd;
+
+    connect_fd = accept(listen_fd, sa, addrlen);
+    if (connect_fd < 0)
+        err_exit("[Accept]");
+    return connect_fd;
+}
+
+void sig_int(int n) {
+    std::cout << "Хз что тут должно быть\n";
+    std::cout << "n = " << n << std::endl;
+}
+
 /*void str_cli(FILE *fp, int sockfd) {
     char sendline[MAXLINE], recvline[MAXLINE];
     while (fgets(sendline, MAXLINE, fp) != NULL) {
