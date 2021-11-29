@@ -10,20 +10,14 @@
 
 #include <iostream>
 
-#include "../utils_src/net_write_read.hpp"
-
-typedef struct {
-    pthread_t   thread_tid;     /* идентификатор потока */
-    long        thread_count;   /* кол-во обработанных запросов */
-}   Thread;
-Thread *tptr;                   /* массив структур Thread */
+//#include "../utils_src/net_write_read.hpp"
+//#include "pthread_workers.hpp"
+#include "workers.hpp"
 
 #define MAXNCLI 32
-int clifd[MAXLINE], iget, iput; /* clifd[MAXLINE] - сюда главный поток записывает дескрипторы присоединенных сокетов
-                                *  iget - индекс очередного элемента, передаваемого свободному потоку
-                                *  iput - индекс для очередного элемента, записываемого в него главным потоком */
-//pthread_mutex_t clifd_mutex;
-//pthread_cond_t clifd_cond;
+int clifd[MAXNCLI], iget, iput; /* clifd[MAXNCLI] - массив, в который главный поток записывает дескрипторы присоединенных сокетов
+                                * iput - индекс в данном массиве для очередного элемента, записываемого в него главным потоком
+                                *  */
 
 static int nthreads;
 pthread_mutex_t clifd_mutex = PTHREAD_MUTEX_INITIALIZER;
@@ -35,6 +29,7 @@ int main(int argc, char **argv) {
     void    sig_int(int), thread_make(int);
     socklen_t addrlen = 0, clilen;
     struct sockaddr *cliaddr;
+    Worker *workers;
 
     if (argc == 3)
         listenfd = Tcp_listen(NULL, argv[1], &addrlen);
@@ -45,14 +40,25 @@ int main(int argc, char **argv) {
 
     if ( (cliaddr = (SA *)malloc(addrlen)) == NULL )
         err_sys("Error malloc");
-    nthreads = atoi(argv[argc - 1]);
-    tptr = (Thread *)calloc(nthreads, sizeof(Thread));
+    if ( (nthreads = atoi(argv[argc - 1])) <= 0)
+        err_sys("Error nthreads");
+    /*tptr = (Thread *)calloc(nthreads, sizeof(Thread));
     if (tptr == NULL)
-        std::cout << "Err calloc\n";
+        std::cout << "Err calloc\n";*/
 
+    workers = new Worker[nthreads];
+    workers[0].setMutex(&clifd_mutex);
+    workers[0].setCond(&clifd_cond);
+    workers[0].iput = &iput;
+    workers[0].iget = &iget;
+    workers[0].clifd = clifd;
+
+    std::cout << "TEST\n";
     /* создание всех потоков */
+//    for (i = 0; i < nthreads; i++)
+//        thread_make(i);
     for (i = 0; i < nthreads; i++)
-        thread_make(i);
+        workers[i].start();
 
 //    signal(SIGINT, sig_int);
 
@@ -72,10 +78,13 @@ int main(int argc, char **argv) {
     }
 }
 
+/*
 void thread_make(int i) {
     void    *thread_main(void *);
 
-    pthread_create(&tptr[i].thread_tid, NULL, &thread_main, &i); /* check error pthread_create */
+    pthread_create(&tptr[i].thread_tid, NULL, &thread_main, &i); */
+/* check error pthread_create *//*
+
     return;
 }
 
@@ -85,12 +94,18 @@ void *thread_main(void *arg) {
 
     std::cout << "Thread starting\n";
     for (;;) {
-        pthread_mutex_lock(&clifd_mutex); /* check error pthread_mutex_lock */
+        pthread_mutex_lock(&clifd_mutex); */
+/* check error pthread_mutex_lock *//*
+
         while (iget == iput) {
-            pthread_cond_wait(&clifd_cond, &clifd_mutex); /* check error pthread_cond_wait */
+            pthread_cond_wait(&clifd_cond, &clifd_mutex); */
+/* check error pthread_cond_wait *//*
+
         }
         std::cout << "after pthread_cond_wait\n";
-        connfd = clifd[iget]; /* Присоединенный сокет, который требуется обслужить */
+        connfd = clifd[iget]; */
+/* Присоединенный сокет, который требуется обслужить *//*
+
         std::cout << "after connfd = clifd[iget]\n";
 
         if (++iget == MAXNCLI)
@@ -99,13 +114,15 @@ void *thread_main(void *arg) {
 //        std::cout << *static_cast<int *>(arg) << "\n";
         tptr[*static_cast<int *>(arg)].thread_count++;
 
-        web_child(connfd);  /* обработка запроса */
-        close(connfd);  /* check error close */
+        web_child(connfd);  */
+/* обработка запроса *//*
+
+        close(connfd);  */
+/* check error close *//*
+
     }
     return NULL;
 }
-
-#define MAXN 16384 /* максимальное количество байтов, которое клиент может запросить */
 
 void web_child(int sockfd) {
 //    int ntowrite;
@@ -114,15 +131,25 @@ void web_child(int sockfd) {
 //    char line[MAXLINE], result[MAXN];
 
     for (;;) {
+*/
 /*        if ( (nread = read(sockfd, line, MAXLINE)) == 0 )
-            return;     *//* соединение закрыто другим концом *//*
+            return;     *//*
+*/
+/* соединение закрыто другим концом *//*
+*/
+/*
 
-        *//* line задает кол-во байт, которое следует отправить обратно *//*
+        *//*
+*/
+/* line задает кол-во байт, которое следует отправить обратно *//*
+*/
+/*
         ntowrite = atol(line);
         if ( (ntowrite <= 0) || (ntowrite > MAXN) )
             err_exit("client request err ntowrite");
         if ( writen(sockfd, result, ntowrite) < 0)
-            err_exit("error writen");*/
+            err_exit("error writen");*//*
+
 
         if ( (nread = read(sockfd, buf, MAXLINE)) < 0) {
             std::cout << "Прочитал: " << buf << std::endl;
@@ -141,3 +168,4 @@ void web_child(int sockfd) {
 
     }
 }
+*/

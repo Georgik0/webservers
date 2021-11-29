@@ -21,4 +21,8 @@ int clifd[MAXNCLI], iget, iput; /* clifd[MAXNCLI] - массив, в котор�
 pthread_mutex_t clifd_mutex;
 pthread_cond_t clifd_cond;
 
+//static int nthreads;
+//pthread_mutex_t clifd_mutex = PTHREAD_MUTEX_INITIALIZER;
+//pthread_cond_t clifd_cond = PTHREAD_COND_INITIALIZER;
+
 #endif //WEBSERVERS_PTHREAD_WORKERS_HPP

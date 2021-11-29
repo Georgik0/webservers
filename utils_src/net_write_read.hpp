@@ -7,6 +7,7 @@
 
 #define MAXLINE 4096
 #define	LISTENQ	1024 /* максимальное кол-во клиентских соединений */
+#define MAXN 16384 /* максимальное количество байтов, которое клиент может запросить */
 #define	SA	struct sockaddr
 
 #include <sys/types.h> /* ssize_t fd_set */
