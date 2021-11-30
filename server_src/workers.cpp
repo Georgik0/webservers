@@ -8,14 +8,17 @@
 #include <iostream>
 #include <unistd.h>
 
+int Worker::_count_worker = 0;
 int *Worker::iget = 0;
 int *Worker::clifd = 0;
 int *Worker::iput = 0;
+std::queue<int> *Worker::_clients = NULL;
 pthread_mutex_t  *Worker::_clifd_mutex = NULL;
 pthread_cond_t   *Worker::_clifd_cond = NULL;
 
 Worker::Worker() {
     _index = 0;
+//    _thread_tid = NULL;
 //    _thread_tid = new pthread_t;
 //    _thread_tid = (pthread_t *)malloc(sizeof(pthread_t));
 //    if (_thread_tid == NULL)
@@ -42,12 +45,20 @@ void Worker::setMutex(pthread_mutex_t *clifd_mutex) {
     _clifd_mutex = clifd_mutex;
 }
 
+void Worker::setClients(std::queue<int> *clients) {
+    _clients = clients;
+}
+
 pthread_cond_t *Worker::getCond() {
     return _clifd_cond;
 }
 
 pthread_mutex_t *Worker::getMutex() {
     return _clifd_mutex;
+}
+
+std::queue<int> *Worker::getClients() {
+    return _clients;
 }
 
 static void web_child(int sockfd) {
@@ -57,16 +68,6 @@ static void web_child(int sockfd) {
 //    char line[MAXLINE], result[MAXN];
 
     for (;;) {
-        /*if ( (nread = read(sockfd, line, MAXLINE)) == 0 )
-            return;      соединение закрыто другим концом
-
-        *//* line задает кол-во байт, которое следует отправить обратно *//*
-        ntowrite = atol(line);
-        if ( (ntowrite <= 0) || (ntowrite > MAXN) )
-            err_exit("client request err ntowrite");
-        if ( writen(sockfd, result, ntowrite) < 0)
-            err_exit("error writen");*/
-
         if ( (nread = read(sockfd, buf, MAXLINE)) < 0) {
             std::cout << "Прочитал: " << buf << std::endl;
             return;
@@ -92,19 +93,24 @@ void *thread_main(void *arg) {
     Worker *worker = static_cast<Worker *>(arg);
     pthread_mutex_t *clifd_mutex = worker->getMutex();
     pthread_cond_t *clifd_cond = worker->getCond();
+    std::queue<int> *clients = worker->getClients();
 
     std::cout << "Thread [" + std::to_string(worker->getIndex()) + "] starting\n";
     for (;;) {
         pthread_mutex_lock(clifd_mutex);  /* check error pthread_mutex_lock */
-        while (*(worker->iget) == *(worker->iput)) {
-            pthread_cond_wait(clifd_cond, clifd_mutex);  /* check error pthread_cond_wait */
-        }
+
+        /*while (*(worker->iget) == *(worker->iput)) {
+            pthread_cond_wait(clifd_cond, clifd_mutex);  *//* check error pthread_cond_wait *//*
+        }*/
+        pthread_cond_wait(clifd_cond, clifd_mutex);  /* check error pthread_cond_wait */
         std::cout << "after pthread_cond_wait\n";
-        connfd = worker->clifd[*(worker->iget)];  /* Присоединенный сокет, который требуется обслужить */
+
+//        connfd = worker->clifd[*(worker->iget)];  /* Присоединенный сокет, который требуется обслужить */
+        connfd = clients->front(); /* достали первого клиента из очереди */
         std::cout << "after connfd = clifd[iget]\n";
 
-        if (++(*(worker->iget)) == MAXNCLI)
-            *(worker->iget) = 0;
+        /*if (++(*(worker->iget)) == MAXNCLI)
+            *(worker->iget) = 0;*/
         pthread_mutex_unlock(clifd_mutex);
 //        std::cout << *static_cast<int *>(arg) << "\n";
 //        tptr[*static_cast<int *>(arg)].thread_count++;
@@ -120,7 +126,8 @@ void *thread_main(void *arg) {
 void Worker::start() {
 //    void    *thread_main(void *);
 //    int err = 0;
-    _index++;
+    _count_worker++;
+    _index = _count_worker;
     std::cout << "$" << _index << "$    ";
     Worker  *worker = this;
 //    write(2, "test\n", strlen("test\n"));

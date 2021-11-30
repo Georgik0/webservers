@@ -9,6 +9,7 @@
 #include <strings.h>
 
 #include <iostream>
+#include <queue>
 
 //#include "../utils_src/net_write_read.hpp"
 //#include "pthread_workers.hpp"
@@ -29,6 +30,7 @@ int main(int argc, char **argv) {
     void    sig_int(int), thread_make(int);
     socklen_t addrlen = 0, clilen;
     struct sockaddr *cliaddr;
+    std::queue<int> clients;
     Worker *workers;
 
     if (argc == 3)
@@ -42,39 +44,55 @@ int main(int argc, char **argv) {
         err_sys("Error malloc");
     if ( (nthreads = atoi(argv[argc - 1])) <= 0)
         err_sys("Error nthreads");
-    /*tptr = (Thread *)calloc(nthreads, sizeof(Thread));
-    if (tptr == NULL)
-        std::cout << "Err calloc\n";*/
 
     workers = new Worker[nthreads];
-    workers[0].setMutex(&clifd_mutex);
-    workers[0].setCond(&clifd_cond);
-    workers[0].iput = &iput;
-    workers[0].iget = &iget;
-    workers[0].clifd = clifd;
+    Worker::setMutex(&clifd_mutex);
+    Worker::setCond(&clifd_cond);
+    Worker::setClients(&clients);
+    Worker::iput = &iput;
+    Worker::iget = &iget;
+    Worker::clifd = clifd;
 
     std::cout << "TEST\n";
-    /* создание всех потоков */
-//    for (i = 0; i < nthreads; i++)
-//        thread_make(i);
     for (i = 0; i < nthreads; i++)
         workers[i].start();
 
-//    signal(SIGINT, sig_int);
+    fd_set  read_set, write_set, allset;
+    int maxfd = listenfd;
+
+    FD_ZERO(&allset);
+    FD_SET(listenfd, &allset);
+
 
     for (;;) {
-        clilen = addrlen;
-        connfd = ft_accept(listenfd, cliaddr, &clilen);
-        write(1, "Server get accept\n", strlen("Server get accept\n"));
+        read_set = allset;
+        if (select(maxfd + 1, &read_set, &write_set, NULL, NULL) < 0)
+            err_sys("Error select\n");
 
-        pthread_mutex_lock(&clifd_mutex); /* check error pthread_mutex_lock */
-        clifd[iput] = connfd;
-        if (++iput == MAXNCLI)
-            iput = 0;
-        if (iput == iget)
-            err_sys("iput = iget");
-        pthread_cond_signal(&clifd_cond); /* check error pthread_cond_signal */
-        pthread_mutex_unlock(&clifd_mutex); /* check error pthread_mutex_unlock */
+        if (FD_ISSET(listenfd, &read_set)) {
+            clilen = addrlen;
+            connfd = ft_accept(listenfd, cliaddr, &clilen);
+            write(1, "Server get accept\n", strlen("Server get accept\n"));
+
+            pthread_mutex_lock(&clifd_mutex); /* check error pthread_mutex_lock */
+
+            clients.push(connfd);
+            /*clifd[iput] = connfd;
+            if (++iput == MAXNCLI)
+                iput = 0;
+            if (iput == iget)
+                err_sys("iput = iget");*/
+
+            pthread_cond_signal(&clifd_cond); /* check error pthread_cond_signal */
+            pthread_mutex_unlock(&clifd_mutex); /* check error pthread_mutex_unlock */
+            FD_SET(connfd, &allset);    /* добавление нового дескриптора */
+            if (connfd > maxfd)
+                maxfd = connfd;     /* для ф-ции select */
+        }
+
+//        if (FD_ISSET()) {
+//
+//        }
     }
 }
 

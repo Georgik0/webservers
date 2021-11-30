@@ -8,6 +8,7 @@
 #include <errno.h>
 #include <stdio.h>
 #include <netdb.h> /* struct addrinfo */
+#include <sys/select.h> /* FD_SETSIZE, select */
 //#include <sys/socket.h>
 #include "net_write_read.hpp"
 
@@ -128,6 +129,14 @@ void sig_int(int n) {
     std::cout << "Хз что тут должно быть\n";
     std::cout << "n = " << n << std::endl;
 }
+
+/*void ft_select(int maxfdp1, fd_set *readset, fd_set *writeset, fd_set *exceptset, struct timeval *restrict timeout) {
+    int nready;
+    (void )timeout;
+    if ((nready = select(maxfdp1, readset, writeset, exceptset, timeout)) < 0) {
+        err_sys("Error select\n");
+    }
+}*/
 
 /*void str_cli(FILE *fp, int sockfd) {
     char sendline[MAXLINE], recvline[MAXLINE];

@@ -12,6 +12,7 @@
 
 #include <sys/types.h> /* ssize_t fd_set */
 #include <sys/socket.h> /* socklen_t */
+#include <sys/time.h>
 
 ssize_t writen(int fd, const void *vptr, size_t n);
 int Tcp_listen(const char *host, const char *serv, socklen_t *addrlenp);
@@ -22,6 +23,7 @@ void ft_connect(int fd, const struct sockaddr* sa, socklen_t addrlen);
 void ft_bind(int fd, const struct sockaddr* addr, socklen_t addrlen);
 void ft_listen(int fd, int queue);
 int ft_accept(int listen_fd, struct sockaddr* sa, socklen_t* addrlen);
+void ft_select(int maxfdp1, fd_set *readset, fd_set *writeset, fd_set *exceptset, struct timeval *timeout);
 
 //  Exit
 void err_exit(const char* msg);

@@ -80,7 +80,7 @@ int main(int argc, char **argv) {
             }
             std::cout << "New connect: " << connfd << std::endl;
 
-            for (i = 0; i < FD_SETSIZE; i++) {
+            for (i = 0; i < FD_SETSIZE; i++) { /* FD_SETSIZE - константа с максимальным кол-ом дескрипторов для rset */
                 if (client[i] < 0) {
                     client[i] = connfd; /* сохряняем дескриптор */
                     break;
