@@ -1,7 +1,7 @@
 # Webservers
 
 ## ***multithreading_echo_server.cpp***
-_Пока что компилируется только на macOS_
+
 ```sh
 #соберет многопоточный сервер
 make server_multithreading_echo
