@@ -26,7 +26,7 @@ obj_client_multi_echo = ${src_client_multi_echo:%.cpp=${obj_dir}/%.o}
 
 cc = clang++
 
-flags = -Wall -Wextra -Werror -std=c++98 -fsanitize=address # -Wshadow -Wno-shadow
+flags = -Wall -Wextra -Werror -std=c++11 -fsanitize=address # -Wshadow -Wno-shadow
 
 name_client = client
 name_server = server
