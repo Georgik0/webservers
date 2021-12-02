@@ -22,13 +22,7 @@ Worker::Worker() {
     _index = 0;
     _connfd = -1;
     data_answer = NULL;
-//    _thread_tid = NULL;
-//    _thread_tid = new pthread_t;
-//    _thread_tid = (pthread_t *)malloc(sizeof(pthread_t));
-//    if (_thread_tid == NULL)
-//        write(2, "test1\n", strlen("test1\n"));
-//    _clifd_mutex = 0;
-//    _clifd_cond = 0;
+
 }
 
 Worker::~Worker() {}
@@ -113,12 +107,10 @@ void Worker::decrementCountClients() {
 }
 
 static void web_child(Worker *worker) {
-//    int ntowrite;
     ssize_t nread;
     char buf[MAXLINE];
     int sockfd = worker->getConnfd();
     fd_set *allset = worker->getAllset();
-//    char line[MAXLINE], result[MAXN];
 
     for (;;) {
         if (worker->getReadFlag()) {
@@ -168,23 +160,14 @@ void *thread_main(void *arg) {
     for (;;) {
         pthread_mutex_lock(clifd_mutex);  /* check error pthread_mutex_lock */
 
-        /*while (*(worker->iget) == *(worker->iput)) {
-            pthread_cond_wait(clifd_cond, clifd_mutex);  *//* check error pthread_cond_wait *//*
-        }*/
         pthread_cond_wait(clifd_cond, clifd_mutex);  /* check error pthread_cond_wait */
         std::cout << "after pthread_cond_wait\n";
 
-//        connfd = worker->clifd[*(worker->iget)];  /* Присоединенный сокет, который требуется обслужить */
         connfd = clients_queue->front(); /* достали первого клиента из очереди */
         worker->setConnfd(connfd); /* закрепили за воркером клиента */
         clients_queue->pop(); /* удалили клиента из очереди */
-//        std::cout << "after connfd = clifd[iget]\n";
 
-        /*if (++(*(worker->iget)) == MAXNCLI)
-            *(worker->iget) = 0;*/
         pthread_mutex_unlock(clifd_mutex);
-//        std::cout << *static_cast<int *>(arg) << "\n";
-//        tptr[*static_cast<int *>(arg)].thread_count++;
 
         worker->incrementCountClients();
         web_child(worker);   /* обработка запроса */
@@ -195,17 +178,9 @@ void *thread_main(void *arg) {
     return arg;
 }
 
-//pthread_t   thread_tid;
-
 void Worker::start() {
-//    void    *thread_main(void *);
-//    int err = 0;
     _count_worker++;
     _index = _count_worker;
     Worker  *worker = this;
-//    write(2, "test\n", strlen("test\n"));
     pthread_create(&_thread_tid, NULL, &thread_main, static_cast<void *>(worker));
-//    if ( (err = pthread_create(&_thread_tid, NULL, &thread_main, worker)) < 0)
-//        return "Error pthread_create";
-//    return NULL;
 }
