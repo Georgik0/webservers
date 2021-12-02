@@ -48,9 +48,6 @@ int main(int argc, char **argv) {
     Worker::setMutex(&clifd_mutex);
     Worker::setCond(&clifd_cond);
     Worker::setClientsQueue(&clients);
-    Worker::iput = &iput;
-    Worker::iget = &iget;
-    Worker::clifd = clifd;
 
     std::cout << "TEST\n";
     for (i = 0; i < nthreads; i++)
