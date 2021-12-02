@@ -24,12 +24,7 @@ int main(int argc, char **argv) {
     fd_set rset, allset;
     char buf[MAXLINE];
     socklen_t addrlen, len /*clilen*/;
-    /*struct sockaddr_in servaddr;  cliaddr*/
     struct sockaddr *cliaddr;
-
-//    if ((listenfd = socket(AF_INET, SOCK_STREAM, 0)) < 0) {
-//        err_sys("Error socket\n");
-//    }
 
     if (argc == 2)
         listenfd = Tcp_listen(NULL, argv[1], &addrlen);
@@ -44,19 +39,6 @@ int main(int argc, char **argv) {
         std::cout << "err malloc" << std::endl;
         return 1;
     }
-
-/*    bzero(&servaddr, sizeof(servaddr));
-    servaddr.sin_family = AF_INET;
-    servaddr.sin_addr.s_addr = htonl(INADDR_ANY);
-    servaddr.sin_port = htons(SERV_PORT);
-
-    if (bind(listenfd, (SA *) &servaddr, sizeof(servaddr)) < 0) {
-        err_sys("Error bind\n");
-    }
-
-    if (listen(listenfd, LISTENQ) < 0) {
-        err_sys("Error listen\n");
-    }*/
 
     maxfd = listenfd;   /* инициализация */
     maxi = -1;  /* индекс в массиве client[] */
