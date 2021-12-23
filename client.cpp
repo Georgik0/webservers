@@ -1,13 +1,8 @@
-//
-// Created by Stephane Kitsch on 10/20/21.
-//
-
-//#include "header.hpp"
+#include "header.hpp"
 #include <cstdio>
 #include <cstdlib>
 #include <cstring>
 #include <iostream>
-#include <istream>
 #include <string>
 #include <strings.h>
 #include <sys/_select.h>
@@ -18,36 +13,26 @@
 #define CLIENTS 1
 void    str_client(int connect_fd) {
     char    recvline[MAXLINE];
-    int stdineof = 0;
     fd_set  rset;
     int     maxdp;
     std::string    sendline;
 
     FD_ZERO(&rset);
     for ( ;; ) {
-        if (stdineof == 0) // неизвестно зачем
-            FD_SET(STDIN_FILENO, &rset);
+        FD_SET(STDIN_FILENO, &rset);
         FD_SET(connect_fd, &rset);
         maxdp = std::max(STDIN_FILENO, connect_fd) + 1;
         select(maxdp, &rset, NULL, NULL, NULL);
 
         if (FD_ISSET(connect_fd, &rset)) {
-            if (read(connect_fd, recvline, sizeof(recvline)) == 0) {
-                if (stdineof == 1) {
-                    return;
-                } else {
-                    err_exit("server ended connection");
-                }
-            }
+            if (read(connect_fd, recvline, sizeof(recvline)) == 0)
+                err_exit("server ended connection");
             std::cout << "-> " << recvline << std::endl;
+            // sleep(1);
         }
         if (FD_ISSET(STDIN_FILENO, &rset)) {
-            if (!std::getline(std::cin, sendline)) {
-                stdineof = 1;
-                shutdown(connect_fd, SHUT_WR);
-                FD_CLR(STDIN_FILENO, &rset);  //    Неизвестно зачем
-                continue;
-            }
+            if (!std::getline(std::cin, sendline))
+                return;
             write(connect_fd, sendline.c_str(), sendline.length());
         }
         bzero(recvline, sizeof(recvline));
@@ -75,4 +60,3 @@ int main(int argc, char **argv) {
     exit(EXIT_SUCCESS);
     return 0;
 }
-

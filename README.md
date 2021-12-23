@@ -1,44 +1,49 @@
-# Webservers
+# Webserv
+School 21 (Ecole 42) learning project about HTTP and web connection based on Berkeley sockets.
 
-## ***Multithreading asynchronous server***
-_Сервер работет следующим образом:_
-- _главный процесс запускает пул воркеров (потоков), которые начинают ожидають своих клиентов_
-- _как только подключается клиент, select отлавливает подключение, главный процесс дает сигнал и клиента забирает один из воркеров_
-- _чтение и запись каждого врокера работает в неблокирующем режиме_
-```sh
-# собираем сервер
-make server_multithreading_select
-# появился исполняемый файл ./server
+## How to run project
 ```
-_Как запускаем:_
-```sh
-./server ip port количество_воркеров
-# например
-./server 127.0.0.1 8000 10
+Clone and build project:
+1. git clone https://github.com/auhoris/webserv.git
+2. cd webserv
+3. make webserv
 ```
 
+## Usage
+There is config file like in Ngnix. You can use provided test config or created by yourself.
+Webserv supports only basic parameters:
+- host:port;
+- error pages;
+- locations with
+    - root
+    - autoinedx (on/off)
+    - index pages
+    - methods (GET, POST, DELETE)
 
-## ***Multithreading echo server***
-После каждого нового подключения создается поток, в котором будет обрабатываться клиент
-```sh
-#соберет многопоточный сервер
-make server_multithreading_echo
-# запустить
-./server 127.0.0.1 8000
+
+```
+1. ./webserv config_nginx
+2. Connect from browser or any web client to server
 ```
 
-## ***Select server***
-Сервер на одном select-е
-```sh
-#соберет сервер на select-е
-make server_select
-# запустить
-./server 127.0.0.1 8000
-```
+## Team
+Intra logins:
+- auhoris;
+- cmarguer;
+- skitsch.
 
-<!-- ## ***data_time_server.cpp***
-```sh
-#соберет сервер на одном потоке
-make server_multithreading_echo
-``` -->
-
+## TODO
+- [ ] Странички ошибок, их вывод на проблему; -> skitsch
+- [ ] Обработать длинное тело post-запроса; -> skitsch
+- [ ] setup routes in a server to different directories; -> cmarguer : skitsch
+- [ ] setup a default file to search for if you ask for a directory; -> skitsch
+- [ ] попытаться удалить что-то с разрешением и без; -> skitsch
+- [ ] upload some file to the server and get it back; -> 
+- [x] убрать errno; -> auhoris
+- [ ] Try to list a directory; -> cmarguer
+- [ ] Try a redirected URL; -> cmarguer
+- [x] Сделать запись ответа в файл и отправлять ответ из файла клиенту; -> auhoris
+- [ ] Обработать chunked request; -> auhoris : cmarguer
+- [ ] Запускать разные(?) CGI в зависимости от расширения файла; -> ???
+- [ ] Забиндить имя серверу; -> auhoris
+- [ ] Разобраься с CGI; -> всем

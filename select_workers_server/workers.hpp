@@ -9,7 +9,7 @@
 #include <queue>
 
 #include <pthread.h>
-#include "../utils_src/net_write_read.hpp"
+#include "./utils_src/net_write_read.hpp"
 
 #define MAXNCLI 32
 
@@ -57,7 +57,7 @@ public:
     static void setCond(pthread_cond_t *clifd_cond);
     static void setClientsQueue(std::queue<int> *clients);
 
-    std::string   *data_answer;
+    std::string   data_answer;
 
     static int              *clifd;
     static int              *iget;

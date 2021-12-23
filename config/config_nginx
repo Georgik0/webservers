@@ -1,0 +1,25 @@
+server {
+  listen 127.0.0.1;
+  port 8081;
+  location /home {
+    root /var/www/website;
+    index index.html;
+    methods POST DELETE;
+  }
+  location /bplot {
+    root /foo/bar/baz;
+    autoindex on;
+    post_body 100k;
+  }
+  location /house {
+    autoindex off;
+  }
+  location /bplot {
+    root /foo/bar/baz;
+    autoindex on;
+    post_body 100k;
+  }
+  location /house {
+    autoindex off;
+  }
+}

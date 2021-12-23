@@ -1,0 +1,32 @@
+server
+  host 127.0.0.1
+  listen 8080
+  location /home
+    root /var/www/website
+    index index.html
+    methods GET HEAD
+  location /blog
+    root /foo/bar/baz
+    autoindex on
+    post_body 100k
+  location /blog
+    autoindex off
+---
+server
+  host 127.55.85.1
+  listen 8081
+  error_pages ./errors
+  error_pages ./errors23
+  error_pages ./errors334
+  location /
+    root /home/user/website
+    cgi /usr/bin/php
+    cgi_ext .php
+    methods POST
+---
+server
+  host 127.55.85.1
+  listen 8081
+  error_pages ./errors_54
+  location /lil
+

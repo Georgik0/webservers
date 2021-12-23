@@ -21,7 +21,7 @@ pthread_cond_t   *Worker::_clifd_cond = NULL;
 Worker::Worker() {
     _index = 0;
     _connfd = -1;
-    data_answer = NULL;
+    data_answer = "";
 
 }
 
@@ -124,24 +124,26 @@ static void web_child(Worker *worker) {
                 std::cout << "nread = " << nread << std::endl;
                 buf[nread] = '\0';
                 std::cout << "[" << sockfd << "] " << "Прочитал: " << buf << std::endl;
-                worker->data_answer = new std::string("Data_answer");
+                std::string answer = "Data_answer";
+                worker->data_answer = answer;
                 std::memset(buf, '\0', nread);
             }
             worker->setReadFlag(false);
         }
 
-        if (worker->data_answer != NULL && worker->getWriteFlag()) {
+        if (worker->data_answer != "" && worker->getWriteFlag()) {
 //            std::string answer(buf);
 //            answer = "\"" + answer + "\"" + " - server response";
-            std::string answer(*worker->data_answer);
+            // std::string answer(worker->data_answer);
+            std::string answer = "HTTP/1.1 200 OK\nContent-Type: text/html\nConnection: Closed\n\n<!DOCTYPE html>\n\n<html lang=\"ru\">\n<head>\n\n<meta charset=\"UTF-8\">\n\n<title> Пример простой страницы html</title>\n</head>\n\n<body>\n\nПример простой страницы - для того, чтобы посмотреть код, нажмите ctrl + U\n</body>\n\n</html>\r\n";
             if (writen(sockfd, answer.c_str(), answer.length()) < 0){
                 std::cout << "sockfd = " << sockfd << "\n";
                 err_sys("Error write");
             } else {
                 std::cout << "Ответил: " << answer << std::endl;
             }
-            delete worker->data_answer;
-            worker->data_answer = NULL;
+            // delete worker->data_answer;
+            worker->data_answer = "";
             worker->setWriteFlag(false);
         }
     }
