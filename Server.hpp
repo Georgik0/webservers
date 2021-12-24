@@ -1,10 +1,13 @@
 #ifndef __SERVER_HPP
 #define __SERVER_HPP
 
-#include "Socket.hpp"
+#include <set>
 #include <string>
 #include <map>
 #include <vector>
+#include <fcntl.h>
+
+#include "Socket.hpp"
 
 enum Methods {
     GET,
@@ -27,25 +30,25 @@ typedef struct location_s {
     std::vector<bool>           methods;
 }               location_t;
 
-typedef struct answer_s {
-    std::string     header;
-    std::string     path;
-}               answer_t;
-
 class Server {
     private:
         Socket                          _server;
-        std::map<int, std::string>      _err_pages;
         std::vector<location_t>         _locations;
+        std::map<int, std::string>      _err_pages;
         int                             _cli_max_body_size;
         std::string                     _listen;
         std::string                     _port;
+        std::set<Socket>                _clients;
+        char** _SetEnv(std::map<std::string, std::string>& http_req);
+        void   _SetLocation(std::vector<std::string>& env_vars, const std::string& path, std::map<std::string, std::string>& http_req);
+        const location_t& _GetLocation(const std::string& path) const;
 
     public:
-        std::string                     mime_conf_path;
-        std::string                     server_name;
-        static std::map<Socket, std::string>   _conn_cli;
-        static std::vector<std::string> _env_vars;
+        std::string                             mime_conf_path; // ???
+        std::string                             server_name;    // ???
+        static std::map<Socket, std::string>    _cli_ans;
+        static std::map<Socket, int>            _cli_pids;
+        static std::vector<std::string>         _env_vars;
 
     public:
         Server();
@@ -57,9 +60,10 @@ class Server {
         void    PBErrPages(const std::string& err_page);
         Socket  Accept();
         std::string&    operator[](const int err_code);
-        bool        find(const Socket& client);
+        bool  find(const Socket& client) const;
         int GetClientMaxBodySize() const;
         void SetClientMaxBodySize(size_t size);
+        void  HandleCliReq(const std::string& recv, const Socket& client);
         ~Server();
 };
 

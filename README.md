@@ -33,17 +33,19 @@ Intra logins:
 - skitsch.
 
 ## TODO
-- [ ] Странички ошибок, их вывод на проблему; -> skitsch
+- [x] Странички ошибок, их вывод на проблему; -> skitsch
+- 
 - [ ] Обработать длинное тело post-запроса; -> skitsch
-- [ ] setup routes in a server to different directories; -> cmarguer : skitsch
-- [ ] setup a default file to search for if you ask for a directory; -> skitsch
-- [ ] попытаться удалить что-то с разрешением и без; -> skitsch
-- [ ] upload some file to the server and get it back; -> 
+- [ ] upload some file to the server and get it back; ->
+- 
+- [ ] setup routes in a server to different directories; -> cmarguer
+- [ ] setup a default file to search for if you ask for a directory; -> skitsch !
+- [x] попытаться удалить что-то с разрешением и без; -> skitsch
 - [x] убрать errno; -> auhoris
-- [ ] Try to list a directory; -> cmarguer
-- [ ] Try a redirected URL; -> cmarguer
+- [x] Try to list a directory; -> cmarguer
+- [ ] Try a redirected URL; -> cmarguer ???????
 - [x] Сделать запись ответа в файл и отправлять ответ из файла клиенту; -> auhoris
 - [ ] Обработать chunked request; -> auhoris : cmarguer
 - [ ] Запускать разные(?) CGI в зависимости от расширения файла; -> ???
 - [ ] Забиндить имя серверу; -> auhoris
-- [ ] Разобраься с CGI; -> всем
+- [ ] Разобраься с CGI; -> cmarguer : auhoris

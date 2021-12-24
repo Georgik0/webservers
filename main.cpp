@@ -43,76 +43,22 @@ void clear_resourse(set_t& input, set_t& output, Socket& sock,
     }
 }
 
-int check_serv(const Socket& sock, const std::vector<Server>& servers) {
+int IsServer(const Socket& sock, const std::vector<Server>& servers) {
     int i;
     for (i = 0; i < servers.size(); i++) {
-        if (sock.get_fd() == servers[i].getSocket().get_fd()) return i;
+        if (sock == servers[i].getSocket())
+            return i;
     }
     return -1;
 }
 
-
-char** set_http_env_vars(std::map<std::string, std::string>& http_req, const Server& server) {
-    std::vector<std::string> env_vars = Server::_env_vars;
-    std::string tmp;
-
-    tmp = "SERVER_PROTOCOL=HTTP/1.1";
-    env_vars.push_back(tmp);
-    tmp = "REQUEST_METHOD=" + http_req["Type"];
-    env_vars.push_back(tmp);
-    tmp = "HTTP_VERSION=" + http_req["Version"];
-    env_vars.push_back(tmp);
-    tmp = "SERVER_NAME=" +
-          http_req["Host"].substr(0, http_req["Host"].find(":"));
-    env_vars.push_back(tmp);
-    tmp = "SERVER_PORT=" +
-          http_req["Host"].substr(http_req["Host"].find(":") + 1,
-                                  http_req["Host"].length());
-    env_vars.push_back(tmp);
-    tmp = "HTTP_CONNECTION=" + http_req["Connection"];
-    env_vars.push_back(tmp);
-    tmp = "PATH_INFO=" + http_req["Path"];
-    env_vars.push_back(tmp);
-    tmp = "HTTP_USER_AGENT=" + http_req["User-Agent"];
-    env_vars.push_back(tmp);
-    tmp = "HTTP_ACCEPT=" + http_req["Accept"];
-    env_vars.push_back(tmp);
-    tmp = "HTTP_CONTENT_TYPE=" + http_req["Content-Type"];
-    env_vars.push_back(tmp);
-    tmp = "HTTP_CONTENT_LENGTH=" + http_req["Content-Length"];
-    env_vars.push_back(tmp);
-    tmp = "QUERY_STRING=" + http_req["Body"];
-    env_vars.push_back(tmp);
-    tmp = "CLI_MAX_BODY_SIZE=" + ft::to_string(server.GetClientMaxBodySize());
-    env_vars.push_back(tmp);
-    /* add QUERY_STRING */
-    int size = env_vars.size();
-    char** env = new char*[size + 1];
-    env[size] = NULL;
-    for (int i = 0; i < size; i++) {
-        env[i] = const_cast<char*>(env_vars[i].c_str());
+Server& ClientInServ(const Socket& sock, const std::vector<Server>& servers) {
+    int i;
+    for (i = 0; i < servers.size(); i++) {
+        if (servers[i].find(sock))
+            break;
     }
-    return env;
-}
-
-std::string    handle_client_request(const std::string& recv, const Server& server) {
-    std::map<std::string, std::string> http_req = parse_header(recv, const_cast<char *>(&recv[recv.length()]));
-    char** env = set_http_env_vars(http_req, server);
-    int pid = fork();
-    if (pid == 0) {
-        int fd = open("output.txt", O_TRUNC | O_CREAT | O_WRONLY, 0777);
-        dup2(fd, STDOUT_FILENO);
-        close(fd);
-        execve("./cgi/cgi", NULL, env);
-    }
-    delete [] env;
-    while (wait(NULL) > 0);
-    std::ifstream   infile("output.txt");
-    std::string response;
-    for (std::string line; std::getline(infile, line); ) {
-        response.append(line + "\r\n");
-    }
-    return response;
+    return (const_cast<Server&>(servers[i]));
 }
 
 void handle_readables(const set_t& to_read, std::vector<Server>& servers,
@@ -122,23 +68,23 @@ void handle_readables(const set_t& to_read, std::vector<Server>& servers,
     Socket client;
     int i;
     for (it = to_read.begin(); it != to_read.end(); it++) {
-        if ((i = check_serv(*it, servers)) >= 0) {
+        if ((i = IsServer(*it, servers)) >= 0) {
             client = servers[i].Accept();
-            // std::cout << "<- New cliend connected with fd " << client.get_fd()
-            //           << std::endl;
+            std::cout << "<- New cliend connected with fd " << client.get_fd()
+                      << std::endl;
             input.insert(client);
         } else {
             Socket tmp_cli = *it;
             try {
                 recv = tmp_cli.Recv();
-                std::cout << "<- Recv data from client " << it->get_fd() << std::endl;
-                std::cout << recv << "\n";
+                // std::cout << "<- Recv data from client " << it->get_fd() << std::endl;
+                // std::cout << recv << "\n";
             } catch (std::exception& ex) {
                 std::cout << ex.what() << std::endl;
                 clear_resourse(input, output, tmp_cli, selector);
-                break;
+                // continue;
             }
-            Server::_conn_cli[tmp_cli] = handle_client_request(recv, servers[check_serv(tmp_cli, servers)]);
+            ClientInServ(tmp_cli, servers).HandleCliReq(recv, tmp_cli);
             if (recv.length()) {
                 if (output.find(tmp_cli) == output.end()) {
                     output.insert(tmp_cli);
@@ -151,26 +97,28 @@ void handle_readables(const set_t& to_read, std::vector<Server>& servers,
 void handle_writeables(const set_t& to_write, set_t& output, set_t& input,
                        Select& selector) {
     set_t::iterator it;
+    std::string file;
+    std::string header;
     Socket tmp_cli;
-    std::ifstream file;
-    std::string line;
     for (it = to_write.begin(); it != to_write.end(); it++) {
         tmp_cli = *it;
+        waitpid(Server::_cli_pids[tmp_cli], NULL, 0);
+        std::ifstream   answer(Server::_cli_ans[tmp_cli]);
+        std::string     line;
         try {
             // std::cout << "-> Sending data to client " << it->get_fd() << std::endl;
-            tmp_cli.Send(Server::_conn_cli[tmp_cli]);
+            while (std::getline(answer, line)) {
+                tmp_cli.Send(line + "\r\n");
+            }
             output.erase(tmp_cli);
             selector.Remove(tmp_cli, WRITE);
+            answer.close();
+            remove(file.c_str());
         } catch (std::exception& ex) {
             std::cout << ex.what() << std::endl;
             clear_resourse(input, output, tmp_cli, selector);
         }
     }
-}
-
-void server_shutdown(int s) {
-    std::cout << "Server is shutting down..." << std::endl;
-    exit(1);
 }
 
 std::vector<std::string> parse_envp(char** envp) {
@@ -186,7 +134,6 @@ int main(int argc, char** argv, char** envp) {
         std::cout << "[Usage]: ./webserv config_file" << std::endl;
         return 1;
     }
-    getAutoIndex("/Users/vlados_paperos/Documents/21school/webserv", "/Users/vlados_paperos/Documents/21school/webserv");
     std::string configname(argv[1]);
     std::vector<Server> servers;
     try {

@@ -75,16 +75,17 @@ void Socket::Listen(size_t backlog) {
 }
 
 Socket Socket::Accept() const {
-    Socket test;
-    if ((test._sock_fd = accept(_sock_fd, NULL, NULL)) < 0) {
+    Socket acc_sock;
+    if ((acc_sock._sock_fd = accept(_sock_fd, NULL, NULL)) < 0) {
         throw SocketError("Accept: ", strerror(errno));
     }
-    return (test);
+    return (acc_sock);
 }
 
-void Socket::Send(std::string& to_send) const {
+void Socket::Send(const std::string& to_send) const {
     int n;
     n = write(_sock_fd, to_send.c_str(), to_send.length());
+    // std::cout << "bytes: " << n << "\n";
     if (n == 0) {
         throw SocketError("Send: ", "Closed connection with client " +
                                         ft::to_string(_sock_fd) + "\n");
@@ -118,6 +119,10 @@ Socket::~Socket() {}
 
 bool operator<(const Socket& lhs, const Socket& rhs) {
     return (lhs.get_fd() < rhs.get_fd());
+}
+
+bool operator==(const Socket& lhs, const Socket& rhs) {
+    return lhs.get_fd() == rhs.get_fd();
 }
 
 Socket::SocketError::SocketError(const std::string& method,

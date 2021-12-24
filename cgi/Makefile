@@ -7,7 +7,7 @@ objects = $(sources:%.cpp=$(objdir)/%.o)
 deps	= $(objects:%.o=%.d)
 
 linker = clang++
-flags = -g -std=c++98 #-Wall -Wextra -Werror #-fsanitize=address
+flags = -g -std=c++17 -fsanitize=address #-Wall -Wextra -Werror #-fsanitize=address
 rm	  = rm -rf
 
 all: $(name)

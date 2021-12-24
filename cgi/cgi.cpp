@@ -6,23 +6,33 @@
 #include <fstream>
 #include <sstream>
 #include <map>
-#include <string>
-#include <vector>
 #include <time.h>
 #include <sys/stat.h>
-#include <cstdlib>
-#include <cstring>
-//#include <cstdio>
 #include <unistd.h>
 #include <fcntl.h>
 
 std::string error_page(std::string err_str);
 typedef std::map<std::string, std::string> mss;
 static void answer_page(mss &answer, std::string err_str);
+void getAutoIndex(const std::string &path, const std::string &uri_path);
 
-std::ostream &operator<<(std::ostream& os, std::string s) {
-    write(1, s.c_str(), s.length());
-    return os;
+static std::string getLength(std::string path) {
+    int len = 0;
+    std::string line;
+    if (path != "/")
+    {
+        std::ifstream   file;
+        file.open(("." + path).c_str());
+        if (file.is_open()) {
+            while (std::getline(file, line)) {
+                len += line.length();
+            }
+            file.close();
+        }
+    }
+    std::ostringstream ss;
+    ss << len;
+    return ss.str();
 }
 
 static void setLength(mss &answer) {
@@ -62,12 +72,9 @@ static void result_answer(mss &answer) {
         file.close();
     } else {
         answer["Code"] = "404";
+//        if (getenv("404"))
         answer_page(answer, "404 NOT FOUND");
     }
-}
-
-static void status_code(mss &answer) {
-
 }
 
 static void method_delete(mss &answer) {
@@ -114,24 +121,36 @@ static void method_get(mss &answer) {
     }
     if (answer["Code"] == "")
         result_answer(answer);
-//    else
-//        only_header(answer);
 }
 
 static void answer_page(mss &answer, std::string err_str) {
-//    answer["Code"] = "405"; /* метод нельзя применить на сервере */
-    std::ostringstream ss;
-    std::string body = error_page(err_str);
-    ss << body.length();
-    answer["Content-Length"] = ss.str();
-
-//    write(STDOUT_FILENO, answer["Version"].c_str(), answer["Version"].length());
     std::cout << answer["Version"] << " " << answer["Code"] << std::string("\r\n");
     std::cout << std::string("Date: ") << answer["Date"] << std::string("\r\n");
     std::cout << std::string("Server: ") << answer["Server"] << std::string("\r\n");
-    std::cout << std::string("Content-Length: ") << answer["Content-Length"] << std::string("\r\n");
-    std::cout << std::string("Connection: ") << answer["Connection"] << std::string("\n\n");
-    std::cout << body << std::endl;
+
+    char *page_path = getenv(answer["Code"].c_str());
+    if (page_path == NULL) {
+        std::ostringstream ss;
+        std::string body = error_page(err_str);
+        ss << body.length();
+        answer["Content-Length"] = ss.str();
+        std::cout << std::string("Content-Length: ") << answer["Content-Length"] << std::string("\r\n");
+        std::cout << std::string("Connection: ") << answer["Connection"] << std::string("\n\n");
+        std::cout << body << std::endl;
+    } else {
+        std::string page_path_str(page_path);
+        answer["Content-Length"] = getLength(page_path_str);
+        std::cout << std::string("Content-Length: ") << answer["Content-Length"] << std::string("\r\n");
+        std::cout << std::string("Connection: ") << answer["Connection"] << std::string("\n\n");
+        std::ifstream file_err_page;
+        file_err_page.open("." + page_path_str);
+        if (file_err_page.is_open()) {
+            std::string buf;
+            while (getline(file_err_page, buf))
+                std::cout << buf;
+            file_err_page.close();
+        }
+    }
 }
 
 static void selcetMethod(mss &answer) {
@@ -140,7 +159,6 @@ static void selcetMethod(mss &answer) {
     answer["Path"] = getenv("PATH_INFO");
     std::string types[] = {"GET", "POST", "DELETE"};
     void (*methods[])(mss&) = {method_get, method_post, method_delete};
-    // std::cout << "search method\n";
     for (; i < 3; ++i) {
         if (type == types[i]) {
             methods[i](answer);
@@ -161,26 +179,11 @@ static void setTime(mss &answer) {
     answer["Date"] = std::string(buf);
 }
 
-int main(int argc, char **argv, char **env) {
-//    int fd = open("output.txt", O_TRUNC | O_CREAT | O_WRONLY, 0777);
-//    dup2(fd, STDOUT_FILENO);
-//    close(fd);
-//    __gnu_cxx::stdio_filebuf<char> fb(1, std::ios::out);
-//    std::ostream gg(&fb);
+int main() {
     std::map<std::string, std::string>  answer;
-//    char *version = getenv("HTTP_VERSION");
-//    if (version == NULL) {
-//        std::cout << std::string("HTTP_VERSION is NULL\n");
-//    } else {
-//        std::cout << "все ок: " << std::string(version);
-//    }
-//    std::string test((char *)getenv("HTTP_VERSION"));
-//    std::cout << test << "\n";
-
     answer["Version"] = getenv("HTTP_VERSION");
     answer["Server"] = "Webmasters";
     answer["Connection"] = "Close";
-    write(STDOUT_FILENO, answer["Version"].c_str(), answer["Version"].length());
     setTime(answer);
     selcetMethod(answer);
 }

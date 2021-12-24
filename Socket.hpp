@@ -35,7 +35,7 @@ public:
     // maybe add setsockopt
     void Listen(size_t backlog);
     Socket Accept() const;
-    void Send(std::string & to_send) const;
+    void Send(const std::string & to_send) const;
     std::string Recv() const;
     void Close();
     void Setsockopt(int lvl = SOL_SOCKET, int option = SO_REUSEADDR);
@@ -51,5 +51,6 @@ public:
 };
 
 bool operator<(const Socket& lhs, const Socket& rhs);
+bool operator==(const Socket& lhs, const Socket& rhs);
 
 #endif /* ifndef __SOCKET_HPP */

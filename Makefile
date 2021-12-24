@@ -11,7 +11,7 @@ objects = $(sources:%.cpp=$(objdir)/%.o)
 deps	= $(objects:%.o=%.d)
 
 linker = clang++
-flags = -g -std=c++11 #-fsanitize=address #-Wall -Wextra -Werror 
+flags = -g -std=c++98 -fsanitize=address #-Wall -Wextra -Werror 
 rm	  = rm -rf
 
 all: $(name)
@@ -33,6 +33,7 @@ clean:
 
 fclean: clean
 	$(rm) $(name)
+	$(MAKE) fclean -C $(cgidir)/
 
 re: fclean all
 
