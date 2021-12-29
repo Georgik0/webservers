@@ -38,6 +38,8 @@ class Server {
         int                             _cli_max_body_size;
         std::string                     _listen;
         std::string                     _port;
+        std::string                     CgiPhp;
+        std::string                     CgiTxt;
         std::set<Socket>                _clients;
         char** _SetEnv(std::map<std::string, std::string>& http_req);
         void   _SetLocation(std::vector<std::string>& env_vars, const std::string& path, std::map<std::string, std::string>& http_req);
@@ -64,7 +66,12 @@ class Server {
         int GetClientMaxBodySize() const;
         void SetClientMaxBodySize(size_t size);
         void  HandleCliReq(const std::string& recv, const Socket& client);
+        void setCgiPhp(std::string const & path);
+        void setCgiTxt(std::string const & path);
+        std::string const &getCgiPhp() const;
+        std::string const &getCgiTxt() const;
         ~Server();
+
 };
 
 bool operator<(const Server& lhs, const Server& rhs);

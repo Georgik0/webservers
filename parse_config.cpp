@@ -66,6 +66,10 @@ std::vector<Server> parse_config(const std::string& configfile) {
                         serv.SetClientMaxBodySize(std::stoi(v_config[++i]));
                     if (v_config[i] == "mime_conf_path")
                         serv.mime_conf_path = v_config[++i];
+                    if (v_config[i] == "cgi_path_php")
+                        serv.setCgiPhp(v_config[++i]);
+                    if (v_config[i] == "cgi_path_txt")
+                        serv.setCgiTxt(v_config[++i]);
                     if (v_config[i] == "server_name")
                         serv.server_name = v_config[++i];
                     ++i;
@@ -75,7 +79,7 @@ std::vector<Server> parse_config(const std::string& configfile) {
                 } catch (...) {
                     throw;
                 }
-
+                
                 //данные для локаций
                 while (i < v_config.size() && v_config[i] != "server") {
                     location_t v_loc;

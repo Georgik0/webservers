@@ -4,7 +4,9 @@ server {
     error_page 404 /index1.html;
     error_page 405 /FULL_PATH_TO_FILE/webserv/www/error/405.html;
     client_max_body_size 1024;
-    mime_conf_path /FULL_PATH_TO_FILE/webserv/mime.conf
+    mime_conf_path /FULL_PATH_TO_FILE/webserv/mime.conf;
+    cgi_path_php /FULL_PATH_TO_FILE/webserv/cgi.php;
+    cgi_path_txt /FULL_PATH_TO_FILE/webserv/cgi.txt;
 
     location / {
         root /FULL_PATH_TO_FILE/webserv/www/final/;

@@ -30,6 +30,7 @@ static std::string getLength(std::string path) {
             file.close();
         }
     }
+    // len += 4;
     std::ostringstream ss;
     ss << len;
     return ss.str();
@@ -50,6 +51,7 @@ static void setLength(mss &answer) {
             file.close();
         }
     }
+    // len += 5;
     std::ostringstream ss;
     ss << len;
     answer["Content-Length"] = ss.str();
@@ -63,12 +65,14 @@ static void result_answer(mss &answer) {
         std::cout << answer["Version"] << " " << answer["Code"] << std::string("\r\n");
         std::cout << std::string("Date: ") << answer["Date"] << std::string("\r\n");
         std::cout << std::string("Server: ") << answer["Server"] << std::string("\r\n");
+        std::cout << "Content-Type: text/html\r\n";
         setLength(answer);
         std::cout << std::string("Content-Length: ") << answer["Content-Length"] << std::string("\r\n");
-        std::cout << std::string("Connection: ") << answer["Connection"] << std::string("\n\n");
+        std::cout << std::string("Connection: ") << answer["Connection"] << std::string("\r\n");
+        // std::cout << "\r\n";
         std::string buf;
         while (std::getline(file, buf))
-            std::cout << buf << std::string("\n");
+            std::cout << buf;// << std::string("\n");
         file.close();
     } else {
         answer["Code"] = "404";
@@ -183,7 +187,7 @@ int main() {
     std::map<std::string, std::string>  answer;
     answer["Version"] = getenv("HTTP_VERSION");
     answer["Server"] = "Webmasters";
-    answer["Connection"] = "Close";
+    answer["Connection"] = "Close"; //"keep-alive";
     setTime(answer);
     selcetMethod(answer);
 }

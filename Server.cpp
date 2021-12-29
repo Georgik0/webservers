@@ -7,10 +7,12 @@
 #include <memory>
 #include <string>
 #include <sys/fcntl.h>
+#include <sys/stat.h>
 #include <unistd.h>
 #include <utility>
 #include <vector>
 #include <fstream>
+#include <cstring>
 
 std::map<Socket, std::string> Server::_cli_ans;
 std::map<Socket, int> Server::_cli_pids;
@@ -25,11 +27,13 @@ Server::Server() : _server() {
 Server::Server(const Server& other) :
     _server(other._server),
     _err_pages(other._err_pages),
-    _locations(other._locations), 
+    _locations(other._locations),
     _cli_max_body_size(other._cli_max_body_size),
     _clients(other._clients),
     _listen(other._listen),
-    _port(other._port) {
+    _port(other._port),
+    CgiPhp(other.CgiPhp),
+    CgiTxt(other.CgiTxt) {
 }
 
 Server& Server::operator=(const Server& other) {
@@ -42,6 +46,8 @@ Server& Server::operator=(const Server& other) {
     _listen = other._listen;
     _port = other._port;
     _clients = other._clients;
+    CgiTxt = other.CgiTxt;
+    CgiPhp = other.CgiPhp;
     return *this;
 }
 
@@ -98,6 +104,18 @@ void Server::SetClientMaxBodySize(size_t size) {
     _cli_max_body_size = size;
 }
 
+void Server::setCgiPhp(std::string const & path)
+{ this->CgiPhp = path; }
+
+void Server::setCgiTxt(std::string const & path)
+{ this->CgiTxt = path; }
+
+std::string const &Server::getCgiPhp() const
+{ return this->CgiPhp; }
+
+std::string const &Server::getCgiTxt() const
+{ return this->CgiTxt; }
+
 const location_t& Server::_GetLocation(const std::string& path) const {
     for (int i = 0; i < _locations.size(); i++) {
         if (path.compare(_locations[i].path) == 0) {
@@ -107,7 +125,8 @@ const location_t& Server::_GetLocation(const std::string& path) const {
     return _locations[0];
 }
 
-void   Server::_SetLocation(std::vector<std::string>& env_vars, const std::string& path, std::map<std::string, std::string>& http_req) {
+void   Server::_SetLocation(std::vector<std::string>& env_vars, const std::string& path1, std::map<std::string, std::string>& http_req) {
+    std::string path = "." + path1;
     location_t loc = _GetLocation(path);
     std::string tmp;
     tmp = "LOC_ROOT=" + loc.root;
@@ -121,8 +140,41 @@ void   Server::_SetLocation(std::vector<std::string>& env_vars, const std::strin
     tmp = "AUTOINDEX=" + std::string((loc.autoindex ? "ON" : "OFF"));
     env_vars.push_back(tmp);
     if (loc.autoindex) {
-        getAutoIndex(http_req["Path"], http_req["Path"]);
-        tmp = std::string("PATH_INFO=") + std::string("/auto.html");
+        struct stat s;
+        std::cout << "path: " << path << "\n";
+        if( stat(const_cast<char *>(path.c_str()),&s) == 0 )
+        {
+            if( s.st_mode & S_IFDIR )
+            {
+                //it's a directory
+                char cwd[6000];
+                std::cout << "is directory\n";
+                // need to past your path to project
+                if (getcwd(cwd, sizeof(cwd)) != NULL) {
+                    printf("Current working dir: %s\n", cwd);
+                } else {
+                    perror("getcwd() error");
+                    exit(1);
+                }
+                getAutoIndex(std::string(cwd) + std::string(http_req["Path"].substr(0, http_req["Path"].size())), http_req["Path"]);
+                tmp = std::string("PATH_INFO=") + std::string("/auto.html");
+            }
+            else if( s.st_mode & S_IFREG )
+            {
+                //it's a file
+                std::cout << "it's a file\n";
+                tmp = "PATH_INFO=" + http_req["Path"];
+            }
+            else
+            {
+                //something else maybe need to delete
+                tmp = "PATH_INFO=" + http_req["Path"];
+            }
+        }
+        else{
+            std::cout << "error path\n";
+            tmp = std::string("PATH_INFO=") + std::string("/error.html");
+        }
     } else {
         tmp = "PATH_INFO=" + http_req["Path"];
     }
@@ -170,12 +222,12 @@ char** Server::_SetEnv(std::map<std::string, std::string>& http_req) {
         tmp = ft::to_string(it->first) + "=" + it->second;
         env_vars.push_back(tmp);
     }
-    _SetLocation(env_vars, http_req["Path"], http_req);
+    _SetLocation(env_vars,http_req["Path"], http_req);
     int size = env_vars.size();
     char** env = new char*[size + 1];
     env[size] = NULL;
     for (int i = 0; i < size; i++) {
-        env[i] = strdup(env_vars[i].c_str()); 
+        env[i] = strdup(env_vars[i].c_str());
         // std::cout << env[i] << "\n";
     }
     return env;

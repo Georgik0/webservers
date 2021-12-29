@@ -9,7 +9,7 @@
 #include <cstring>
 #include <iostream>
 #include <string>
-#include <type_traits>
+//#include <type_traits>
 
 #include "header.hpp"
 
@@ -85,7 +85,7 @@ Socket Socket::Accept() const {
 void Socket::Send(const std::string& to_send) const {
     int n;
     n = write(_sock_fd, to_send.c_str(), to_send.length());
-    // std::cout << "bytes: " << n << "\n";
+    std::cout << "bytes: " << n << "   len = " << to_send.length() << "\n";
     if (n == 0) {
         throw SocketError("Send: ", "Closed connection with client " +
                                         ft::to_string(_sock_fd) + "\n");

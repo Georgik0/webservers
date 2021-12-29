@@ -103,16 +103,34 @@ void handle_writeables(const set_t& to_write, set_t& output, set_t& input,
     for (it = to_write.begin(); it != to_write.end(); it++) {
         tmp_cli = *it;
         waitpid(Server::_cli_pids[tmp_cli], NULL, 0);
-        std::ifstream   answer(Server::_cli_ans[tmp_cli]);
+        std::ifstream   answer(Server::_cli_ans[tmp_cli].c_str());
         std::string     line;
         try {
             // std::cout << "-> Sending data to client " << it->get_fd() << std::endl;
             while (std::getline(answer, line)) {
                 tmp_cli.Send(line + "\r\n");
+                if (line.find("Connection") != std::string::npos) { /* последний заголовок */
+                    // std::getline(answer, line);
+                    tmp_cli.Send("\r\n");
+                }
             }
+            tmp_cli.Send("\0");
+            // tmp_cli.Send("\r\n");
+            // char buf[1000];
+            // int n, sum_byte = 0;
+            // while (answer) {
+            //     answer.read(buf, 999);
+            //     buf[answer.gcount()] = '\0';
+            //     // if (answer.gcount() < 1000) {
+            //     //     buf[answer.gcount() + 1] = '\0';
+            //     // }
+            //     tmp_cli.Send(buf);
+            // }
+            
             output.erase(tmp_cli);
             selector.Remove(tmp_cli, WRITE);
             answer.close();
+            // pause();
             remove(file.c_str());
         } catch (std::exception& ex) {
             std::cout << ex.what() << std::endl;
